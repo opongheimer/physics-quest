@@ -1,0 +1,578 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Physics Quest | Philippine School Dubai</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --teal:#00d4c8;--purple:#7c3aed;--gold:#f59e0b;--dark:#0a0a1a;
+    --card:#111128;--border:#1e1e3f;--green:#10b981;--red:#ef4444;
+    --text:#e2e8f0;--muted:#94a3b8;
+  }
+  body{background:var(--dark);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh;overflow-x:hidden;}
+  .starfield{position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,#0d1b3e 0%,#0a0a1a 60%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Ccircle cx='50' cy='80' r='1' fill='white' opacity='0.6'/%3E%3Ccircle cx='150' cy='200' r='1.5' fill='white' opacity='0.4'/%3E%3Ccircle cx='300' cy='50' r='1' fill='white' opacity='0.7'/%3E%3Ccircle cx='380' cy='300' r='1' fill='white' opacity='0.5'/%3E%3Ccircle cx='80' cy='350' r='1.5' fill='white' opacity='0.3'/%3E%3Ccircle cx='220' cy='120' r='1' fill='white' opacity='0.6'/%3E%3Ccircle cx='340' cy='180' r='1' fill='white' opacity='0.4'/%3E%3Ccircle cx='120' cy='280' r='1' fill='white' opacity='0.5'/%3E%3C/svg%3E");z-index:0;}
+  .screen{position:relative;z-index:1;min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+  .screen.active{display:flex;}
+  .glow-title{font-size:clamp(28px,6vw,56px);font-weight:900;text-transform:uppercase;letter-spacing:2px;background:linear-gradient(135deg,var(--teal),var(--purple),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;margin-bottom:8px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:560px;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:10px;border:none;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s;width:100%;margin-top:10px;}
+  .btn-teal{background:linear-gradient(135deg,var(--teal),#0891b2);color:#000;}
+  .btn-purple{background:linear-gradient(135deg,var(--purple),#4c1d95);color:#fff;}
+  .btn-gold{background:linear-gradient(135deg,var(--gold),#d97706);color:#000;}
+  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text);}
+  .btn:hover{transform:translateY(-2px);filter:brightness(1.1);}
+  .input{width:100%;padding:12px 16px;background:#1a1a2e;border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;margin-top:8px;}
+  .input:focus{outline:none;border-color:var(--teal);}
+  select.input option{background:#1a1a2e;}
+  label{font-size:13px;color:var(--muted);margin-top:12px;display:block;}
+  .badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;}
+  .badge-teal{background:rgba(0,212,200,.15);color:var(--teal);border:1px solid rgba(0,212,200,.3);}
+  .badge-gold{background:rgba(245,158,11,.15);color:var(--gold);border:1px solid rgba(245,158,11,.3);}
+  .badge-red{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+  .badge-green{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3);}
+
+  /* ROLE SELECT */
+  .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;width:100%;max-width:560px;}
+  .role-card{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:30px 20px;cursor:pointer;text-align:center;transition:all .2s;}
+  .role-card:hover{border-color:var(--teal);transform:translateY(-4px);}
+  .role-icon{font-size:48px;margin-bottom:12px;}
+  .role-title{font-size:18px;font-weight:700;color:var(--text);}
+  .role-desc{font-size:13px;color:var(--muted);margin-top:4px;}
+
+  /* QUIZ UI */
+  .quiz-header{display:flex;align-items:center;gap:12px;width:100%;max-width:720px;margin-bottom:16px;}
+  .xp-bar-wrap{flex:1;height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;}
+  .xp-bar{height:100%;background:linear-gradient(90deg,var(--teal),var(--purple));border-radius:4px;transition:width .5s;}
+  .q-card{width:100%;max-width:720px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;}
+  .q-number{font-size:12px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;}
+  .q-text{font-size:18px;font-weight:600;color:var(--text);line-height:1.5;margin-bottom:20px;}
+  .q-type-badge{margin-bottom:12px;}
+  .options{display:grid;gap:10px;}
+  .opt{padding:14px 18px;background:#1a1a2e;border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;color:var(--text);text-align:left;transition:all .2s;}
+  .opt:hover{border-color:var(--teal);color:var(--teal);}
+  .opt.selected{border-color:var(--purple);background:rgba(124,58,237,.15);color:#c4b5fd;}
+  .opt.correct{border-color:var(--green);background:rgba(16,185,129,.15);color:var(--green);}
+  .opt.wrong{border-color:var(--red);background:rgba(239,68,68,.15);color:var(--red);}
+  .tf-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .tf-btn{padding:24px;border-radius:12px;border:1px solid var(--border);background:#1a1a2e;cursor:pointer;font-size:22px;font-weight:800;transition:all .2s;color:var(--text);}
+  .tf-btn:hover{transform:scale(1.02);}
+  .tf-btn.t-btn:hover{border-color:var(--green);color:var(--green);}
+  .tf-btn.f-btn:hover{border-color:var(--red);color:var(--red);}
+  .tf-btn.selected.t-btn{border-color:var(--green);background:rgba(16,185,129,.15);color:var(--green);}
+  .tf-btn.selected.f-btn{border-color:var(--red);background:rgba(239,68,68,.15);color:var(--red);}
+
+  /* VIOLATION BANNER */
+  .violation-banner{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#7f1d1d,#991b1b);border-bottom:2px solid var(--red);padding:10px 20px;display:none;align-items:center;gap:10px;font-weight:700;font-size:14px;}
+  .violation-banner.show{display:flex;}
+
+  /* ANTI-CHEAT OVERLAY */
+  .blur-overlay{position:fixed;inset:0;z-index:8888;background:rgba(10,10,26,.95);display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+  .blur-overlay.show{display:flex;}
+  .blur-overlay h2{font-size:28px;color:var(--red);font-weight:900;}
+  .blur-overlay p{font-size:15px;color:var(--muted);text-align:center;max-width:400px;}
+
+  /* TIMER */
+  .timer-display{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:6px 14px;font-size:15px;font-weight:700;color:var(--gold);}
+  .timer-display.urgent{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:var(--red);animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+  /* TEACHER DASHBOARD */
+  .dash-header{width:100%;max-width:900px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;width:100%;max-width:900px;margin-bottom:20px;}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
+  .stat-num{font-size:32px;font-weight:800;color:var(--teal);}
+  .stat-lbl{font-size:12px;color:var(--muted);margin-top:4px;}
+  .table-wrap{width:100%;max-width:900px;overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;}
+  th,td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--border);}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+  td{font-size:14px;}
+  tr:hover td{background:rgba(255,255,255,.03);}
+
+  /* FINAL SCREEN */
+  .stars{font-size:48px;margin-bottom:16px;text-align:center;}
+  .final-score{font-size:72px;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;}
+  .msg-box{background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(0,212,200,.1));border:1px solid rgba(0,212,200,.3);border-radius:16px;padding:24px;max-width:600px;line-height:1.8;font-size:15px;text-align:center;margin-top:16px;}
+
+  /* PROGRESS RING */
+  .ring-wrap{position:relative;width:80px;height:80px;}
+  .ring-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--teal);}
+</style>
+</head>
+<body>
+<div class="starfield"></div>
+
+<!-- VIOLATION BANNER -->
+<div class="violation-banner" id="vBanner">
+  <span>⚠️</span>
+  <span id="vText">Violation detected!</span>
+  <span style="margin-left:auto;font-size:12px;" id="vCount">Total: 0</span>
+</div>
+
+<!-- TAB SWITCH OVERLAY -->
+<div class="blur-overlay" id="tabOverlay">
+  <div style="font-size:60px;">🚨</div>
+  <h2>VIOLATION DETECTED</h2>
+  <p>You left this tab during the assessment. This has been flagged and recorded.</p>
+  <p style="color:var(--red);font-weight:700;" id="tabViolMsg"></p>
+  <button class="btn btn-outline" style="max-width:240px;margin-top:8px;" onclick="resumeFromTab()">Return to Quest</button>
+</div>
+
+<!-- SCREEN: ROLE SELECT -->
+<div class="screen active" id="screen-role">
+  <div style="font-size:40px;text-align:center;margin-bottom:8px;">⚡</div>
+  <div class="glow-title">Physics Quest</div>
+  <p style="color:var(--muted);text-align:center;margin-bottom:8px;">General Physics 2 · Grade 12 · PSD Dubai</p>
+  <p style="color:var(--muted);font-size:13px;text-align:center;margin-bottom:24px;">Q4 · EM Waves · Reflection · Snell's Law</p>
+  <div class="role-grid">
+    <div class="role-card" onclick="go('screen-student-login')">
+      <div class="role-icon">🧑‍🚀</div>
+      <div class="role-title">Student</div>
+      <div class="role-desc">Begin your adventure quest</div>
+    </div>
+    <div class="role-card" onclick="showTeacherLogin()">
+      <div class="role-icon">🧑‍🏫</div>
+      <div class="role-title">Teacher</div>
+      <div class="role-desc">View reports & progress</div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: TEACHER LOGIN -->
+<div class="screen" id="screen-teacher-login">
+  <div class="glow-title" style="font-size:28px;">Teacher Portal</div>
+  <div class="card" style="margin-top:20px;">
+    <p style="color:var(--muted);font-size:14px;margin-bottom:8px;">Enter your access code</p>
+    <label>Access Code</label>
+    <input class="input" type="password" id="teacherCode" placeholder="••••••••">
+    <p style="font-size:12px;color:var(--muted);margin-top:6px;">Hint: physics2025</p>
+    <button class="btn btn-teal" onclick="checkTeacherCode()">Enter Dashboard</button>
+    <button class="btn btn-outline" onclick="go('screen-role')" style="margin-top:6px;">Back</button>
+  </div>
+</div>
+
+<!-- SCREEN: STUDENT LOGIN -->
+<div class="screen" id="screen-student-login">
+  <div style="font-size:36px;text-align:center;margin-bottom:8px;">🚀</div>
+  <div class="glow-title" style="font-size:30px;">Begin Your Quest</div>
+  <div class="card" style="margin-top:16px;">
+    <label>Full Name</label>
+    <input class="input" type="text" id="sName" placeholder="e.g. Maria Santos">
+    <label>Grade & Section</label>
+    <select class="input" id="sSection">
+      <option value="">Select section...</option>
+      <option value="12A">Grade 12 - A</option>
+      <option value="12B">Grade 12 - B</option>
+      <option value="12C">Grade 12 - C</option>
+      <option value="12D">Grade 12 - D</option>
+    </select>
+    <label>Email Address</label>
+    <input class="input" type="email" id="sEmail" placeholder="student@psd.ae">
+    <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:12px;margin-top:16px;font-size:13px;color:#fca5a5;">
+      <strong>⚠️ Anti-Cheat Notice:</strong> This assessment monitors tab switching, copy-paste, and screenshots. All violations are flagged and recorded. By proceeding, you agree to academic integrity.
+    </div>
+    <button class="btn btn-teal" onclick="startQuest()" style="margin-top:16px;">⚔️ Start Quest</button>
+    <button class="btn btn-outline" onclick="go('screen-role')" style="margin-top:6px;">Back</button>
+  </div>
+</div>
+
+<!-- SCREEN: QUIZ -->
+<div class="screen" id="screen-quiz" style="justify-content:flex-start;padding-top:70px;">
+  <div class="quiz-header">
+    <div>
+      <div style="font-size:12px;color:var(--muted);">QUESTION</div>
+      <div style="font-size:20px;font-weight:700;" id="qCounter">1 / 30</div>
+    </div>
+    <div class="xp-bar-wrap"><div class="xp-bar" id="xpBar" style="width:0%"></div></div>
+    <div class="timer-display" id="timerDisplay">30:00</div>
+    <div style="text-align:right;">
+      <div style="font-size:12px;color:var(--muted);">SCORE</div>
+      <div style="font-size:20px;font-weight:700;color:var(--gold);" id="scoreDisplay">0</div>
+    </div>
+  </div>
+  <div class="q-card">
+    <div class="q-number" id="qNum">Question 1 of 30</div>
+    <div class="q-type-badge" id="qTypeBadge"></div>
+    <div class="q-text" id="qText">Loading...</div>
+    <div id="optionsArea"></div>
+  </div>
+  <div style="width:100%;max-width:720px;margin-top:12px;display:flex;justify-content:flex-end;">
+    <button class="btn btn-purple" style="width:auto;padding:12px 32px;" id="nextBtn" onclick="nextQuestion()" disabled>
+      Next ➜
+    </button>
+  </div>
+  <div style="margin-top:12px;display:flex;gap:8px;align-items:center;">
+    <span style="font-size:13px;color:var(--muted);">Violations:</span>
+    <span class="badge badge-red" id="violBadge">0</span>
+  </div>
+</div>
+
+<!-- SCREEN: FINAL -->
+<div class="screen" id="screen-final">
+  <div style="font-size:48px;text-align:center;margin-bottom:8px;" id="finalEmoji">🏆</div>
+  <div class="glow-title" style="font-size:32px;">Quest Complete!</div>
+  <div class="final-score" id="finalScore">0/30</div>
+  <p style="color:var(--muted);text-align:center;margin:4px 0 16px;" id="finalPct"></p>
+  <div class="msg-box">
+    <p style="font-size:22px;margin-bottom:12px;">🌟 A Message from Your Teacher 🌟</p>
+    <p style="font-style:italic;line-height:2;">"You are now at the end of your journey, and it took a great deal of courage to reach this point. Not every day may have been a win, but the fact that you continued to show up says so much about your commitment to succeed. Carry this strength with you into your next journey.</p>
+    <br>
+    <p style="font-style:italic;">Rest assured, <strong style="color:var(--gold);">Sir Johnrey</strong> will always be proud of you, in whatever phase of life you may be.</p>
+    <br>
+    <p style="font-weight:800;font-size:18px;color:var(--teal);">Make a difference, and SEIZE THE DAY. Always."</p>
+    <p style="margin-top:12px;color:var(--muted);font-size:13px;">— Sir Johnrey</p>
+  </div>
+  <div id="violSummary" style="margin-top:16px;max-width:600px;width:100%;"></div>
+  <button class="btn btn-outline" style="max-width:200px;margin-top:16px;" onclick="go('screen-role')">🏠 Home</button>
+</div>
+
+<!-- SCREEN: TEACHER DASHBOARD -->
+<div class="screen" id="screen-teacher" style="justify-content:flex-start;padding-top:30px;align-items:flex-start;padding-left:20px;padding-right:20px;">
+  <div class="dash-header">
+    <div>
+      <div class="glow-title" style="font-size:24px;text-align:left;">📊 Teacher Dashboard</div>
+      <p style="color:var(--muted);font-size:13px;">Physics Quest · Real-time Student Reports</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-gold" style="width:auto;padding:10px 20px;" onclick="downloadReport()">⬇️ Download Report</button>
+      <button class="btn btn-outline" style="width:auto;padding:10px 20px;" onclick="go('screen-role')">Exit</button>
+    </div>
+  </div>
+  <div class="stat-grid" id="statGrid">
+    <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-lbl">Students</div></div>
+    <div class="stat-card"><div class="stat-num" id="statAvg">—</div><div class="stat-lbl">Avg Score</div></div>
+    <div class="stat-card"><div class="stat-num" id="statPass">0</div><div class="stat-lbl">Passed (≥50%)</div></div>
+    <div class="stat-card"><div class="stat-num" id="statViol">0</div><div class="stat-lbl">Total Violations</div></div>
+  </div>
+  <div class="table-wrap">
+    <table id="studTable">
+      <thead><tr>
+        <th>Name</th><th>Section</th><th>Email</th>
+        <th>Score</th><th>%</th><th>Time</th><th>Violations</th><th>Status</th>
+      </tr></thead>
+      <tbody id="studBody">
+        <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px;">No student submissions yet. Share the link with your students!</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// ===== DATA STORE (In-memory — works across the session) =====
+let students = JSON.parse(localStorage.getItem('pq_students') || '[]');
+let currentStudent = null;
+let currentQuestions = [];
+let currentQIndex = 0;
+let score = 0;
+let answered = false;
+let violations = [];
+let timerInterval = null;
+let secondsLeft = 30 * 60;
+let quizStartTime = null;
+
+// ===== ALL 30 QUESTIONS (15 MCQ + 15 T/F) =====
+const allMCQ = [
+  {type:'mcq',text:'Which of the following best explains why electromagnetic waves can travel through a vacuum while sound waves cannot?',options:['EM waves require air molecules to propagate','EM waves are transverse and self-propagating through oscillating electric and magnetic fields','Sound waves have higher energy than EM waves','EM waves travel slower than sound waves in a vacuum'],answer:1},
+  {type:'mcq',text:'A medium has permittivity ε and permeability μ. Which expression gives the speed of an EM wave through this medium?',options:['v = ε × μ','v = 1/√(εμ)','v = √(ε/μ)','v = ε + μ'],answer:1},
+  {type:'mcq',text:'Radio waves and gamma rays are both electromagnetic waves. Which property do they share?',options:['Same wavelength','Same frequency','Same speed in vacuum','Same energy per photon'],answer:2},
+  {type:'mcq',text:'As the frequency of an EM wave increases (in vacuum), which of the following occurs?',options:['Speed increases','Wavelength increases','Wavelength decreases','Speed decreases'],answer:2},
+  {type:'mcq',text:'Which type of EM wave is most directly responsible for causing the greenhouse effect on Earth?',options:['Radio waves','Infrared radiation','Ultraviolet radiation','Gamma rays'],answer:1},
+  {type:'mcq',text:'A glass block (n=1.52) is submerged in water (n=1.33). Light travels from water into glass. What happens to the light ray at the boundary?',options:['It bends away from the normal','It bends toward the normal','It continues straight','It undergoes total internal reflection'],answer:1},
+  {type:'mcq',text:'Zayed-Bot\'s laser (in glass, n=1.52) hits a glass-air boundary at 45°. The critical angle for glass-air is ~41.1°. What occurs?',options:['Light refracts into air','Partial reflection only','Total internal reflection occurs','Light is absorbed'],answer:2},
+  {type:'mcq',text:'Light travels from medium 1 (n=1.0) to medium 2 (n=1.5) at an incidence angle of 30°. Using Snell\'s Law, what is the refraction angle?',options:['45°','19.47°','30°','60°'],answer:1},
+  {type:'mcq',text:'In dispersion through a prism, violet light bends more than red light because:',options:['Violet light has lower frequency','Violet light has a shorter wavelength and higher index of refraction in glass','Red light travels faster in a vacuum','Violet light undergoes total internal reflection'],answer:1},
+  {type:'mcq',text:'Which condition is required for Total Internal Reflection (TIR)?',options:['Light moving from less dense to more dense medium at any angle','Light moving from more dense to less dense medium at an angle ≥ critical angle','Light moving perpendicular to the boundary','Both media must have the same refractive index'],answer:1},
+  {type:'mcq',text:'The index of refraction of a medium is 2.0. What is the speed of light in this medium? (c = 3×10⁸ m/s)',options:['6×10⁸ m/s','1.5×10⁸ m/s','3×10⁸ m/s','1×10⁸ m/s'],answer:1},
+  {type:'mcq',text:'Fiber optic cables transmit data using light. Which phenomenon is essential to their operation?',options:['Diffraction','Dispersion','Total Internal Reflection','Photoelectric effect'],answer:2},
+  {type:'mcq',text:'When light reflects off a surface and undergoes a 180° phase shift, this is characteristic of:',options:['Soft reflection (denser to rarer)','Hard reflection (rarer to denser)','Diffuse reflection','Total internal reflection'],answer:1},
+  {type:'mcq',text:'The Law of Reflection states that the angle of incidence equals the angle of reflection. Both angles are measured relative to:',options:['The reflecting surface','The normal to the surface','The angle of refraction','The direction of travel'],answer:1},
+  {type:'mcq',text:'A mirage on a hot road is caused by light from the sky undergoing total internal reflection in the hot air layer near the ground. This requires:',options:['Cold air near ground, hot air above','Hot air near ground creating a less dense layer, with TIR bending sky light upward','The road acting like a mirror','Gamma rays from the sun'],answer:1},
+];
+
+const allTF = [
+  {type:'tf',text:'Electromagnetic waves require a medium (like air or water) to propagate and cannot travel through a vacuum.',answer:'False'},
+  {type:'tf',text:'The speed of light in a vacuum is approximately 3×10⁸ m/s for all types of EM waves, regardless of frequency.',answer:'True'},
+  {type:'tf',text:'The angle of incidence always equals the angle of reflection when measured from the normal, according to the Law of Reflection.',answer:'True'},
+  {type:'tf',text:'When light travels from glass (n=1.5) to air (n=1.0), it always undergoes total internal reflection regardless of the angle.',answer:'False'},
+  {type:'tf',text:'Total Internal Reflection can occur when light moves from a less optically dense medium to a more optically dense medium.',answer:'False'},
+  {type:'tf',text:'Snell\'s Law can be expressed as n₁ sin θ₁ = n₂ sin θ₂, where n represents the refractive index.',answer:'True'},
+  {type:'tf',text:'In dispersion, red light bends more than violet light when passing through a prism because red light has a higher refractive index.',answer:'False'},
+  {type:'tf',text:'The refractive index of a medium is defined as the ratio of the speed of light in vacuum to its speed in that medium.',answer:'True'},
+  {type:'tf',text:'Infrared radiation from the Sun is primarily responsible for the greenhouse effect because it is absorbed and re-emitted by atmospheric gases.',answer:'True'},
+  {type:'tf',text:'Diffuse reflection occurs when light hits a smooth, flat surface and all reflected rays remain parallel.',answer:'False'},
+  {type:'tf',text:'When light moves from air into water, it slows down and bends toward the normal.',answer:'True'},
+  {type:'tf',text:'Ultraviolet radiation has a longer wavelength than visible light and is therefore less energetic.',answer:'False'},
+  {type:'tf',text:'The critical angle for a glass-water boundary is larger than the critical angle for a glass-air boundary.',answer:'True'},
+  {type:'tf',text:'For a fiber optic cable to work, the angle of incidence of light inside the fiber core must be less than the critical angle.',answer:'False'},
+  {type:'tf',text:'In specular reflection, the incident ray, reflected ray, and the normal at the point of incidence all lie in the same plane.',answer:'True'},
+];
+
+// ===== RANDOMIZE =====
+function shuffle(arr) {
+  let a=[...arr];
+  for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+function buildQuestions() {
+  let mcq = shuffle(allMCQ).slice(0,15);
+  let tf  = shuffle(allTF).slice(0,15);
+  let combined = shuffle([...mcq,...tf]);
+  return combined;
+}
+
+// ===== NAVIGATION =====
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ===== TEACHER =====
+function showTeacherLogin(){go('screen-teacher-login');}
+function checkTeacherCode(){
+  if(document.getElementById('teacherCode').value==='physics2025'){
+    loadDashboard();go('screen-teacher');
+  } else {
+    alert('Incorrect access code.');
+  }
+}
+
+// ===== STUDENT LOGIN =====
+function startQuest(){
+  const name=document.getElementById('sName').value.trim();
+  const sec=document.getElementById('sSection').value;
+  const email=document.getElementById('sEmail').value.trim();
+  if(!name||!sec||!email){alert('Please fill in all fields.');return;}
+  if(!email.includes('@')){alert('Please enter a valid email.');return;}
+  currentStudent={name,section:sec,email,startTime:new Date().toISOString(),violations:[],score:0,total:30,finished:false};
+  violations=[];
+  score=0;
+  currentQIndex=0;
+  answered=false;
+  currentQuestions=buildQuestions();
+  secondsLeft=30*60;
+  quizStartTime=Date.now();
+  document.getElementById('violBadge').textContent='0';
+  document.getElementById('vCount').textContent='Total: 0';
+  go('screen-quiz');
+  renderQuestion();
+  startTimer();
+  startAntiCheat();
+}
+
+// ===== TIMER =====
+function startTimer(){
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    secondsLeft--;
+    let m=Math.floor(secondsLeft/60);
+    let s=secondsLeft%60;
+    let td=document.getElementById('timerDisplay');
+    td.textContent=`${m}:${s<10?'0'+s:s}`;
+    if(secondsLeft<=300)td.classList.add('urgent');
+    else td.classList.remove('urgent');
+    if(secondsLeft<=0){clearInterval(timerInterval);finishQuest();}
+  },1000);
+}
+
+// ===== QUESTION RENDER =====
+function renderQuestion(){
+  answered=false;
+  document.getElementById('nextBtn').disabled=true;
+  const q=currentQuestions[currentQIndex];
+  const total=currentQuestions.length;
+  document.getElementById('qCounter').textContent=`${currentQIndex+1} / ${total}`;
+  document.getElementById('qNum').textContent=`Question ${currentQIndex+1} of ${total}`;
+  document.getElementById('xpBar').style.width=`${((currentQIndex)/total)*100}%`;
+  document.getElementById('scoreDisplay').textContent=score;
+
+  const typeBadge=document.getElementById('qTypeBadge');
+  if(q.type==='mcq'){
+    typeBadge.innerHTML='<span class="badge badge-teal">⚡ Multiple Choice</span>';
+  } else {
+    typeBadge.innerHTML='<span class="badge badge-gold">🔵 True or False</span>';
+  }
+  document.getElementById('qText').textContent=q.text;
+
+  const area=document.getElementById('optionsArea');
+  if(q.type==='mcq'){
+    let opts=shuffle(q.options.map((o,i)=>({text:o,orig:i})));
+    area.innerHTML=`<div class="options">${opts.map((o,i)=>`<button class="opt" onclick="selectMCQ(this,${o.orig},${q.answer})">${String.fromCharCode(65+i)}. ${o.text}</button>`).join('')}</div>`;
+  } else {
+    area.innerHTML=`<div class="tf-grid"><button class="tf-btn t-btn" onclick="selectTF(this,'True','${q.answer}')">✔ TRUE</button><button class="tf-btn f-btn" onclick="selectTF(this,'False','${q.answer}')">✘ FALSE</button></div>`;
+  }
+}
+
+function selectMCQ(btn,chosen,correct){
+  if(answered)return;answered=true;
+  document.querySelectorAll('.opt').forEach(b=>b.style.pointerEvents='none');
+  if(chosen===correct){btn.classList.add('correct');score++;}
+  else{btn.classList.add('wrong');document.querySelectorAll('.opt')[correct].classList.add('correct');}
+  document.getElementById('nextBtn').disabled=false;
+  document.getElementById('scoreDisplay').textContent=score;
+}
+
+function selectTF(btn,chosen,correct){
+  if(answered)return;answered=true;
+  document.querySelectorAll('.tf-btn').forEach(b=>b.style.pointerEvents='none');
+  btn.classList.add('selected');
+  if(chosen===correct){score++;
+    document.getElementById('scoreDisplay').textContent=score;
+  }
+  document.getElementById('nextBtn').disabled=false;
+  document.getElementById('scoreDisplay').textContent=score;
+}
+
+function nextQuestion(){
+  currentQIndex++;
+  if(currentQIndex>=currentQuestions.length){finishQuest();}
+  else{renderQuestion();}
+}
+
+// ===== FINISH =====
+function finishQuest(){
+  clearInterval(timerInterval);
+  removeAntiCheat();
+  const timeTaken=Math.floor((Date.now()-quizStartTime)/1000);
+  const m=Math.floor(timeTaken/60),s=timeTaken%60;
+  currentStudent.score=score;
+  currentStudent.timeTaken=`${m}:${s<10?'0'+s:s}`;
+  currentStudent.violations=violations;
+  currentStudent.finished=true;
+  currentStudent.finishTime=new Date().toISOString();
+  students.push(currentStudent);
+  localStorage.setItem('pq_students',JSON.stringify(students));
+
+  const pct=Math.round((score/30)*100);
+  document.getElementById('finalScore').textContent=`${score}/30`;
+  document.getElementById('finalPct').textContent=`${pct}% · ${getRank(pct)}`;
+  document.getElementById('finalEmoji').textContent=pct>=80?'🏆':pct>=60?'⭐':'💪';
+
+  if(violations.length>0){
+    document.getElementById('violSummary').innerHTML=`<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:16px;"><p style="color:var(--red);font-weight:700;margin-bottom:8px;">⚠️ ${violations.length} Violation(s) Recorded</p>${violations.map(v=>`<p style="font-size:13px;color:var(--muted);">${v}</p>`).join('')}</div>`;
+  }
+  go('screen-final');
+}
+
+function getRank(p){return p>=90?'Quest Champion 🏆':p>=80?'Physics Warrior ⚔️':p>=70?'Light Scholar 🔬':p>=60?'Apprentice 📚':'Explorer 🌱';}
+
+// ===== ANTI-CHEAT =====
+let acHandlers={};
+
+function startAntiCheat(){
+  // Tab switch
+  acHandlers.vis=()=>{
+    if(document.hidden&&document.getElementById('screen-quiz').classList.contains('active')){
+      logViolation('Tab switch / window blur detected');
+      document.getElementById('tabOverlay').classList.add('show');
+      document.getElementById('tabViolMsg').textContent=`Violation #${violations.length} recorded at Q${currentQIndex+1}.`;
+    }
+  };
+  document.addEventListener('visibilitychange',acHandlers.vis);
+
+  // Copy/paste
+  acHandlers.copy=()=>logViolation('Copy (Ctrl+C) attempted');
+  acHandlers.paste=()=>logViolation('Paste (Ctrl+V) attempted');
+  acHandlers.cut=()=>logViolation('Cut (Ctrl+X) attempted');
+  document.addEventListener('copy',acHandlers.copy);
+  document.addEventListener('paste',acHandlers.paste);
+  document.addEventListener('cut',acHandlers.cut);
+
+  // Right-click
+  acHandlers.ctx=(e)=>{e.preventDefault();logViolation('Right-click attempted');};
+  document.addEventListener('contextmenu',acHandlers.ctx);
+
+  // Screenshot keys
+  acHandlers.key=(e)=>{
+    if(e.key==='PrintScreen'){logViolation('PrintScreen / screenshot key pressed');}
+    if((e.ctrlKey||e.metaKey)&&e.shiftKey){logViolation('Screenshot shortcut attempted');}
+  };
+  document.addEventListener('keydown',acHandlers.key);
+
+  // Text select
+  acHandlers.sel=()=>{if(window.getSelection().toString().length>0)logViolation('Text selection detected');};
+  document.addEventListener('selectionchange',acHandlers.sel);
+}
+
+function removeAntiCheat(){
+  document.removeEventListener('visibilitychange',acHandlers.vis);
+  document.removeEventListener('copy',acHandlers.copy);
+  document.removeEventListener('paste',acHandlers.paste);
+  document.removeEventListener('cut',acHandlers.cut);
+  document.removeEventListener('contextmenu',acHandlers.ctx);
+  document.removeEventListener('keydown',acHandlers.key);
+  document.removeEventListener('selectionchange',acHandlers.sel);
+}
+
+function logViolation(msg){
+  const ts=new Date().toLocaleTimeString();
+  const entry=`[${ts}] Q${currentQIndex+1}: ${msg}`;
+  violations.push(entry);
+  const banner=document.getElementById('vBanner');
+  document.getElementById('vText').textContent=`⚠️ ${msg}`;
+  document.getElementById('vCount').textContent=`Total: ${violations.length}`;
+  document.getElementById('violBadge').textContent=violations.length;
+  banner.classList.add('show');
+  setTimeout(()=>banner.classList.remove('show'),3000);
+}
+
+function resumeFromTab(){
+  document.getElementById('tabOverlay').classList.remove('show');
+}
+
+// ===== TEACHER DASHBOARD =====
+function loadDashboard(){
+  students=JSON.parse(localStorage.getItem('pq_students')||'[]');
+  const total=students.length;
+  const avg=total?Math.round(students.reduce((a,s)=>a+s.score,0)/total*100/30)+'%':'—';
+  const passed=students.filter(s=>(s.score/30)>=0.5).length;
+  const viols=students.reduce((a,s)=>a+(s.violations?s.violations.length:0),0);
+  document.getElementById('statTotal').textContent=total;
+  document.getElementById('statAvg').textContent=avg;
+  document.getElementById('statPass').textContent=passed;
+  document.getElementById('statViol').textContent=viols;
+
+  const tbody=document.getElementById('studBody');
+  if(!total){
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px;">No student submissions yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML=students.map(s=>{
+    const pct=Math.round((s.score/30)*100);
+    const vcount=s.violations?s.violations.length:0;
+    const statusColor=pct>=50?'badge-green':'badge-red';
+    const statusText=pct>=50?'Passed':'Failed';
+    const violColor=vcount>0?'badge-red':'badge-teal';
+    return `<tr>
+      <td style="font-weight:600;">${s.name}</td>
+      <td>${s.section}</td>
+      <td style="color:var(--muted);font-size:13px;">${s.email}</td>
+      <td><strong>${s.score}/30</strong></td>
+      <td>${pct}%</td>
+      <td>${s.timeTaken||'—'}</td>
+      <td><span class="badge ${violColor}">${vcount}</span></td>
+      <td><span class="badge ${statusColor}">${statusText}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function downloadReport(){
+  students=JSON.parse(localStorage.getItem('pq_students')||'[]');
+  let csv='Name,Section,Email,Score,Percentage,Time Taken,Violations,Status,Violation Details\n';
+  students.forEach(s=>{
+    const pct=Math.round((s.score/30)*100);
+    const status=pct>=50?'Passed':'Failed';
+    const viols=s.violations?s.violations.join(' | '):'None';
+    csv+=`"${s.name}","${s.section}","${s.email}","${s.score}/30","${pct}%","${s.timeTaken||'—'}","${s.violations?s.violations.length:0}","${status}","${viols}"\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`PhysicsQuest_Report_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+}
+</script>
+</body>
+</html>
